@@ -13,6 +13,7 @@ import { SendPage } from './pages/SendPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { SecurityPage } from './pages/SecurityPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ReceivePage } from './pages/ReceivePage';
 
 export function App() {
   const location = useLocation();
@@ -41,6 +42,7 @@ export function App() {
               <Route path="/connect" element={<ConnectPage />} />
               <Route path="/dashboard" element={<DashboardPage onOpenReceive={() => setIsReceiveModalOpen(true)} />} />
               <Route path="/send" element={<SendPage />} />
+              <Route path="/receive" element={<ReceivePage />} />
               <Route path="/transactions" element={<TransactionsPage />} />
               <Route path="/security" element={<SecurityPage />} />
               <Route path="/owners" element={<SecurityPage />} />

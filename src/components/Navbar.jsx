@@ -43,6 +43,7 @@ export const Navbar = ({ onOpenReceive }) => {
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Send', path: '/send', icon: Send },
+    { name: 'Receive', path: '/receive', icon: ArrowDownLeft },
     { name: 'Transactions', path: '/transactions', icon: Activity },
     { name: 'Security', path: '/security', icon: ShieldCheck },
     { name: 'Settings', path: '/settings', icon: Settings },
