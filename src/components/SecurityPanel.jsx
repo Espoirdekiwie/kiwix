@@ -155,6 +155,14 @@ export const SecurityPanel = () => {
           </div>
         </div>
       </div>
+
+      {/* Security Statement */}
+      <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-500/20 flex items-start gap-2.5 text-xs text-slate-300 font-sans">
+        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+        <p>
+          Sensitive wallet transactions require approval from at least 2 of the 3 configured owners before execution.
+        </p>
+      </div>
     </div>
   );
 };

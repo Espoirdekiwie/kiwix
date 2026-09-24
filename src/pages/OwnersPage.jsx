@@ -254,25 +254,12 @@ export const OwnersPage = () => {
           <OwnerNodeVisualizer />
         </div>
 
-        {/* Consensus Combinations Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 font-mono text-xs">
-          <div className="p-4 rounded-2xl bg-[#070914] border border-slate-800 text-center space-y-1.5">
-            <span className="badge-purple text-[10px]">Combination A</span>
-            <div className="font-heading font-bold text-white text-sm font-sans pt-1">Owner 1 + Owner 2</div>
-            <div className="text-[11px] text-emerald-400 font-bold">✓ 2 Approvals → Executable</div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#070914] border border-slate-800 text-center space-y-1.5">
-            <span className="badge-cyan text-[10px]">Combination B</span>
-            <div className="font-heading font-bold text-white text-sm font-sans pt-1">Owner 2 + Owner 3</div>
-            <div className="text-[11px] text-emerald-400 font-bold">✓ 2 Approvals → Executable</div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#070914] border border-slate-800 text-center space-y-1.5">
-            <span className="badge-emerald text-[10px]">Combination C</span>
-            <div className="font-heading font-bold text-white text-sm font-sans pt-1">Owner 1 + Owner 3</div>
-            <div className="text-[11px] text-emerald-400 font-bold">✓ 2 Approvals → Executable</div>
-          </div>
+        {/* Security Statement */}
+        <div className="p-4 rounded-2xl bg-purple-950/30 border border-purple-500/30 flex items-start gap-3">
+          <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans font-medium">
+            Sensitive wallet transactions require approval from at least 2 of the 3 configured owners before execution.
+          </p>
         </div>
       </motion.div>
     </div>
