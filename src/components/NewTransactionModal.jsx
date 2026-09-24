@@ -35,6 +35,7 @@ export const NewTransactionModal = ({ isOpen, onClose }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [txHash, setTxHash] = useState(null);
+  const [createdTxId, setCreatedTxId] = useState(null);
 
   if (!isOpen) return null;
 
@@ -62,6 +63,10 @@ export const NewTransactionModal = ({ isOpen, onClose }) => {
       setErrorMsg('Please enter a valid Ethereum recipient address (0x...).');
       return;
     }
+    if (recipient.toLowerCase() === ethers.ZeroAddress.toLowerCase()) {
+      setErrorMsg('Recipient address cannot be the zero address (0x0000000000000000000000000000000000000000).');
+      return;
+    }
     if (!amount || isNaN(amount) || txAmountNum <= 0) {
       setErrorMsg('Please enter a valid ETH amount greater than 0.');
       return;
@@ -73,10 +78,11 @@ export const NewTransactionModal = ({ isOpen, onClose }) => {
 
     try {
       setIsSubmitting(true);
-      const receipt = await submitTransaction(recipient, amount);
-      if (receipt) {
+      const result = await submitTransaction(recipient, amount);
+      if (result) {
         setIsSuccess(true);
-        setTxHash(receipt.hash);
+        setTxHash(result.hash);
+        setCreatedTxId(result.txId);
         confetti({
           particleCount: 70,
           spread: 60,
@@ -97,6 +103,7 @@ export const NewTransactionModal = ({ isOpen, onClose }) => {
     setErrorMsg('');
     setIsSuccess(false);
     setTxHash(null);
+    setCreatedTxId(null);
     onClose();
   };
 
@@ -144,6 +151,9 @@ export const NewTransactionModal = ({ isOpen, onClose }) => {
               </div>
 
               <div className="space-y-1">
+                <div className="inline-block px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-mono text-xs font-bold mb-2">
+                  {createdTxId !== null ? `Transaction #${createdTxId}` : 'Transaction Submitted'}
+                </div>
                 <h4 className="font-heading font-bold text-xl text-white">
                   Proposal Submitted Successfully!
                 </h4>

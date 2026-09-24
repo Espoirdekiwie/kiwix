@@ -399,6 +399,10 @@ export const WalletProvider = ({ children }) => {
       addToast('error', 'Invalid recipient Ethereum address.');
       throw new Error('Invalid address');
     }
+    if (recipientAddress.toLowerCase() === ethers.ZeroAddress.toLowerCase()) {
+      addToast('error', 'Recipient cannot be the zero address (0x0).');
+      throw new Error('Zero address not allowed');
+    }
 
     setTxPendingConfirmation(true);
     try {
@@ -414,9 +418,46 @@ export const WalletProvider = ({ children }) => {
       addToast('info', `Transaction broadcasted! Mining on Sepolia...`, tx.hash);
 
       const receipt = await tx.wait();
-      addToast('success', 'Transaction proposal created on Sepolia!', receipt.hash);
+      
+      // Identify transaction ID from real contract event data
+      let identifiedTxId = null;
+      if (receipt && receipt.logs) {
+        for (const log of receipt.logs) {
+          try {
+            const parsed = contractWithSigner.interface.parseLog(log);
+            if (parsed && (parsed.name === 'SubmitTransaction' || parsed.name === 'TransactionCreated')) {
+              identifiedTxId = Number(parsed.args?.txIndex ?? parsed.args?.txId ?? parsed.args?.[1]);
+              break;
+            }
+          } catch (e) {
+            // Not a matching multisig event
+          }
+        }
+      }
+
+      // If log parsing wasn't available, count index is current count before refresh
+      if (identifiedTxId === null) {
+        try {
+          const currentCount = await contractWithSigner.getTransactionCount();
+          identifiedTxId = Number(currentCount) > 0 ? Number(currentCount) - 1 : 0;
+        } catch (e) {
+          identifiedTxId = transactionCount;
+        }
+      }
+
+      addToast(
+        'success',
+        `Transaction proposal #${identifiedTxId} created on Sepolia!`,
+        receipt.hash
+      );
+      
       await fetchBlockchainData();
-      return receipt;
+      return {
+        hash: receipt.hash,
+        txId: identifiedTxId,
+        blockNumber: receipt.blockNumber,
+        receipt,
+      };
     } catch (err) {
       console.error('Error in submitTransaction:', err);
       const friendlyErr = parseBlockchainError(err);

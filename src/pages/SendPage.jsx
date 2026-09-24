@@ -39,9 +39,11 @@ export const SendPage = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [txHash, setTxHash] = useState(null);
+  const [createdTxId, setCreatedTxId] = useState(null);
 
   const currentBalanceNum = parseFloat(balance) || 0;
   const txAmountNum = parseFloat(amount) || 0;
+  const remainingBalanceNum = Math.max(0, currentBalanceNum - txAmountNum);
   const exceedsBalance = txAmountNum > currentBalanceNum;
 
   const handleSubmit = async (e) => {
@@ -64,6 +66,10 @@ export const SendPage = () => {
       setErrorMsg('Please enter a valid Ethereum recipient address (0x...).');
       return;
     }
+    if (recipient.toLowerCase() === ethers.ZeroAddress.toLowerCase()) {
+      setErrorMsg('Recipient address cannot be the zero address (0x0000000000000000000000000000000000000000).');
+      return;
+    }
     if (!amount || isNaN(amount) || txAmountNum <= 0) {
       setErrorMsg('Please enter a valid ETH transfer amount greater than 0.');
       return;
@@ -75,10 +81,11 @@ export const SendPage = () => {
 
     try {
       setIsSubmitting(true);
-      const receipt = await submitTransaction(recipient, amount);
-      if (receipt) {
+      const result = await submitTransaction(recipient, amount);
+      if (result) {
         setIsSuccess(true);
-        setTxHash(receipt.hash);
+        setTxHash(result.hash);
+        setCreatedTxId(result.txId);
         confetti({
           particleCount: 80,
           spread: 70,
@@ -99,6 +106,7 @@ export const SendPage = () => {
     setErrorMsg('');
     setIsSuccess(false);
     setTxHash(null);
+    setCreatedTxId(null);
   };
 
   return (
@@ -123,9 +131,24 @@ export const SendPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-slate-400">Available Balance:</span>
-          <span className="text-lime-400 font-bold text-sm">{balance} ETH</span>
+        {/* Balance Metrics Bar: Available, Transfer, Remaining */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-mono bg-[#070914] p-2.5 rounded-2xl border border-slate-800">
+          <div>
+            <span className="text-[10px] text-slate-400 block font-sans">Available Balance</span>
+            <span className="text-lime-400 font-bold">{balance} ETH</span>
+          </div>
+          <div className="w-px h-6 bg-slate-800" />
+          <div>
+            <span className="text-[10px] text-slate-400 block font-sans">Transfer Amount</span>
+            <span className="text-cyan-300 font-bold">{txAmountNum ? `${txAmountNum} ETH` : '0.00 ETH'}</span>
+          </div>
+          <div className="w-px h-6 bg-slate-800" />
+          <div>
+            <span className="text-[10px] text-slate-400 block font-sans">Remaining Balance</span>
+            <span className={`font-bold ${exceedsBalance ? 'text-rose-400' : 'text-slate-200'}`}>
+              {remainingBalanceNum.toFixed(4)} ETH
+            </span>
+          </div>
         </div>
       </motion.div>
 
@@ -143,6 +166,9 @@ export const SendPage = () => {
             </div>
 
             <div className="space-y-1">
+              <div className="inline-block px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-mono text-xs font-bold mb-2">
+                {createdTxId !== null ? `Transaction #${createdTxId}` : 'Transaction Submitted'}
+              </div>
               <h3 className="font-heading font-black text-2xl text-white">
                 Transfer Proposal Broadcasted!
               </h3>
