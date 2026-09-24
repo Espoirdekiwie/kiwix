@@ -28,31 +28,31 @@ export const TransactionRiskAnalyzer = ({ recipient, amountEth }) => {
   const isValidAddress = recipient && ethers.isAddress(recipient);
   const exceedsBalance = txAmountNum > currentBalanceNum;
 
-  // Determine Risk Category
+  // Determine Educational Risk Category
   let riskLevel = 'LOW';
   let riskColor = 'text-emerald-400';
   let riskBg = 'bg-emerald-500/10 border-emerald-500/30';
   let riskBadge = 'badge-emerald';
-  let riskDescription = 'Standard operational payout. Low drain on multisig liquidity reserves.';
+  let riskDescription = 'Low: This transaction transfers a small portion of the wallet balance.';
 
   if (exceedsBalance) {
-    riskLevel = 'CRITICAL (EXCEEDS BALANCE)';
+    riskLevel = 'HIGH';
     riskColor = 'text-rose-400';
     riskBg = 'bg-rose-500/15 border-rose-500/40';
     riskBadge = 'badge-rose';
-    riskDescription = 'The requested amount exceeds the current contract balance. Payout cannot be executed.';
-  } else if (percentageUsed > 75) {
-    riskLevel = 'HIGH REVIEW';
+    riskDescription = 'High: The transfer amount exceeds the current wallet balance.';
+  } else if (percentageUsed > 60) {
+    riskLevel = 'HIGH';
     riskColor = 'text-rose-400';
     riskBg = 'bg-rose-500/10 border-rose-500/30';
     riskBadge = 'badge-rose';
-    riskDescription = 'This transaction uses most of the available wallet balance. Multi-signer scrutiny advised.';
-  } else if (percentageUsed > 25) {
+    riskDescription = 'High: This transaction transfers a major portion of the wallet balance.';
+  } else if (percentageUsed > 20) {
     riskLevel = 'MEDIUM';
     riskColor = 'text-amber-400';
     riskBg = 'bg-amber-500/10 border-amber-500/30';
     riskBadge = 'badge-amber';
-    riskDescription = 'Moderate treasury outflow. Significant portion of reserves being transferred.';
+    riskDescription = 'Medium: This transaction transfers a significant portion of the wallet balance.';
   }
 
   return (
@@ -172,8 +172,8 @@ export const TransactionRiskAnalyzer = ({ recipient, amountEth }) => {
       </div>
 
       {/* Educational Notice */}
-      <div className="text-[10px] text-slate-500 font-sans text-right">
-        * Educational transaction risk indicator evaluated directly on frontend using contract state.
+      <div className="text-[10px] text-slate-400/80 font-sans text-right italic">
+        * Educational Risk Indicator: This is an educational indicator evaluated from wallet liquidity. It does not guarantee transaction safety.
       </div>
     </div>
   );
