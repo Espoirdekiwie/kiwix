@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="kiwiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a3e635" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <linearGradient id="xGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="50%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+  </defs>
+  <path d="M50 8 L86 28 V72 L50 92 L14 72 V28 Z" stroke="url(#kiwiGrad)" stroke-width="5" stroke-linejoin="round" fill="#080b18" />
+  <path d="M32 30 L68 70" stroke="url(#xGrad)" stroke-width="7" stroke-linecap="round" />
+  <path d="M68 30 L32 70" stroke="url(#kiwiGrad)" stroke-width="7" stroke-linecap="round" />
+  <circle cx="50" cy="50" r="7" fill="#a3e635" />
+  <circle cx="50" cy="50" r="3" fill="#080b18" />
+</svg>
