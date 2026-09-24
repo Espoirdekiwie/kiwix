@@ -73,7 +73,7 @@ export const ConnectPage = () => {
               Connect your wallet
             </h1>
             <p className="text-slate-400 text-sm max-w-sm mx-auto">
-              Connect MetaMask to access your multisignature wallet.
+              Connect MetaMask to access your smart contract wallet.
             </p>
           </div>
 
@@ -209,7 +209,7 @@ export const ConnectPage = () => {
                 {/* Owner Status Display */}
                 <div className="pt-2 border-t border-slate-800">
                   <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
-                    Multisig Role Detection
+                    Keyholder Role Detection
                   </span>
 
                   {isOwner ? (
@@ -236,7 +236,7 @@ export const ConnectPage = () => {
                         <span>Owner Status: Not an owner</span>
                       </div>
                       <p className="text-[11px] text-slate-400 leading-relaxed">
-                        This wallet address is not one of the 3 configured multisig owners on the smart contract. You can observe contract data in read-only mode, but cannot sign or execute transactions.
+                        This wallet address is not one of the 3 configured owners on the smart contract. You can observe contract data in read-only mode, but cannot sign or execute transactions.
                       </p>
                     </div>
                   )}
