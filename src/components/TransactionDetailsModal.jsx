@@ -242,6 +242,26 @@ export const TransactionDetailsModal = ({ tx, isOpen, onClose }) => {
               </div>
             </div>
 
+            {/* On-chain Verification & Etherscan Details */}
+            <div className="p-3.5 rounded-xl bg-[#080b18] border border-slate-800 text-xs font-mono space-y-2">
+              <div className="flex items-center justify-between text-[11px] text-slate-400">
+                <span>Contract Ledger</span>
+                <span className="text-purple-300">Ethereum Sepolia (11155111)</span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[11px]">
+                <span className="text-slate-400">Sepolia Etherscan</span>
+                <a
+                  href={`https://sepolia.etherscan.io/address/0x0757dF7768bEBCdDfC2d97a733eF497A911654b9`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1 underline font-sans"
+                >
+                  <span>View Contract On-Chain</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
             {/* Non-owner / Permission notice */}
             {!isOwner && (
               <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/30 text-xs text-amber-200 flex items-start gap-2.5">
