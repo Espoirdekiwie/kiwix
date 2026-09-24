@@ -8,12 +8,16 @@ import {
   ExternalLink, 
   ShieldCheck, 
   Droplet,
-  QrCode
+  QrCode,
+  RefreshCw
 } from 'lucide-react';
+import { useWallet } from '../context/WalletContext';
 import { CONTRACT_ADDRESS, shortenAddress } from '../contract';
 
 export const ReceiveModal = ({ isOpen, onClose }) => {
+  const { balance, refreshBlockchainData, isLoadingData } = useWallet();
   const [copied, setCopied] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   if (!isOpen) return null;
 
@@ -21,6 +25,12 @@ export const ReceiveModal = ({ isOpen, onClose }) => {
     navigator.clipboard.writeText(CONTRACT_ADDRESS);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshBlockchainData();
+    setTimeout(() => setIsRefreshing(false), 600);
   };
 
   return (
@@ -32,8 +42,11 @@ export const ReceiveModal = ({ isOpen, onClose }) => {
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           className="relative w-full max-w-lg rounded-3xl bg-[#0c1022] border border-cyan-500/30 shadow-2xl p-6 sm:p-8 overflow-hidden"
         >
+          {/* Ambient Glow */}
+          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-28 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none" />
+
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-800 relative z-10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
                 <ArrowDownLeft className="w-5 h-5" />
@@ -43,7 +56,7 @@ export const ReceiveModal = ({ isOpen, onClose }) => {
                   Receive Funds
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Deposit ETH into your KIWIX Smart Contract Wallet
+                  Deposit Sepolia ETH into your KIWIX smart contract wallet
                 </p>
               </div>
             </div>
@@ -56,40 +69,85 @@ export const ReceiveModal = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          <div className="mt-6 space-y-5">
-            {/* Visual QR Simulator Badge */}
-            <div className="p-6 bg-[#080b18] rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center space-y-3">
-              <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-lime-500/20 border border-cyan-500/30 flex items-center justify-center shadow-inner">
-                <QrCode className="w-14 h-14 text-cyan-300" />
+          <div className="mt-6 space-y-5 relative z-10">
+            {/* Live Wallet Balance & Refresh Indicator */}
+            <div className="p-4 rounded-2xl bg-[#080b18] border border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block font-sans">
+                  Current Vault Balance
+                </span>
+                <span className="font-heading font-black text-xl text-gradient">
+                  {balance} <span className="text-xs font-mono font-normal text-slate-400">ETH</span>
+                </span>
               </div>
-              <span className="text-xs font-mono text-slate-400">
-                Ethereum Sepolia Smart Contract Address
-              </span>
+
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing || isLoadingData}
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-slate-700/80 transition-all flex items-center gap-1.5 text-xs font-mono"
+                title="Refresh balance after receiving funds"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isLoadingData ? 'animate-spin text-cyan-400' : ''}`} />
+                <span>Refresh Balance</span>
+              </button>
             </div>
 
-            {/* Contract Address Container */}
+            {/* Smart Contract Wallet Address Container */}
             <div className="space-y-1.5">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-                Wallet Address (Sepolia)
-              </span>
-              <div className="flex items-center justify-between gap-2 p-3 bg-[#070914] rounded-xl border border-slate-800 font-mono text-xs text-cyan-300">
-                <span className="break-all font-semibold">{CONTRACT_ADDRESS}</span>
-                <button
-                  onClick={handleCopy}
-                  className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition-colors shrink-0"
-                  title="Copy Address"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                </button>
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <span>Smart Contract Wallet Address (Sepolia)</span>
+                <span className="text-cyan-400 font-mono text-[10px]">ERC-4337 Ready</span>
+              </div>
+              
+              <div className="p-3.5 bg-[#070914] rounded-2xl border border-slate-800 space-y-2">
+                <div className="font-mono text-xs text-cyan-300 break-all p-2 rounded-xl bg-black/40 border border-slate-800/80 select-all font-semibold leading-relaxed">
+                  {CONTRACT_ADDRESS}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <button
+                    onClick={handleCopy}
+                    className="btn-primary flex-1 text-xs !py-2.5 flex items-center justify-center gap-1.5"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-950" />
+                        <span className="font-bold">Address Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        <span>Copy Address</span>
+                      </>
+                    )}
+                  </button>
+
+                  <a
+                    href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-secondary text-xs !py-2.5 !px-3.5 flex items-center gap-1"
+                    title="View contract on Sepolia Etherscan"
+                  >
+                    <span>Etherscan</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
               </div>
             </div>
 
-            {/* Educational Notice */}
-            <div className="p-3.5 bg-purple-950/20 rounded-xl border border-purple-500/20 text-xs text-purple-200 flex items-start gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-              <p className="leading-relaxed">
-                Funds sent to this address are held securely by the smart contract vault and require 2-of-3 owner approvals before any withdrawal can occur.
-              </p>
+            {/* Explanatory Message */}
+            <div className="p-4 bg-cyan-950/20 rounded-2xl border border-cyan-500/25 text-xs text-slate-200 flex items-start gap-3">
+              <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <strong className="text-cyan-300 font-heading block">Deposit Instruction</strong>
+                <p className="leading-relaxed">
+                  Send Sepolia ETH to this smart contract wallet address.
+                </p>
+                <p className="text-[11px] text-slate-400 pt-1">
+                  Funds deposited into the contract are held securely under 2-of-3 multisignature approval protection.
+                </p>
+              </div>
             </div>
 
             {/* Sepolia Faucet Assistance */}
@@ -99,7 +157,7 @@ export const ReceiveModal = ({ isOpen, onClose }) => {
                 Need Sepolia Testnet ETH?
               </span>
               <a
-                href="https://sepoliafaucet.com"
+                href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia"
                 target="_blank"
                 rel="noreferrer"
                 className="text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1 font-semibold underline"
@@ -109,9 +167,9 @@ export const ReceiveModal = ({ isOpen, onClose }) => {
               </a>
             </div>
 
-            <div className="pt-2">
-              <button onClick={onClose} className="btn-primary w-full text-xs !py-2.5">
-                Done
+            <div className="pt-1">
+              <button onClick={onClose} className="btn-secondary w-full text-xs !py-2.5">
+                Close
               </button>
             </div>
           </div>

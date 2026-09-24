@@ -6,7 +6,6 @@ import {
   ExternalLink, 
   Copy, 
   Check, 
-  GraduationCap, 
   FileCode, 
   Lock, 
   Globe2, 
@@ -14,338 +13,364 @@ import {
   Layers,
   Cpu,
   CheckCircle2,
-  Info
+  Info,
+  RefreshCw,
+  Wallet,
+  UserCheck,
+  Zap
 } from 'lucide-react';
 import { CONTRACT_ADDRESS, CONTRACT_OWNERS, REQUIRED_APPROVALS, shortenAddress } from '../contract';
 import { useWallet } from '../context/WalletContext';
 
 export const SettingsPage = () => {
-  const { isConnected, isSepolia, isOwner, ownerLabel } = useWallet();
-  const [copied, setCopied] = useState(false);
+  const { 
+    account,
+    isConnected, 
+    isSepolia, 
+    isOwner, 
+    ownerLabel,
+    ownerNumber,
+    refreshBlockchainData,
+    isLoadingData,
+    balance
+  } = useWallet();
 
-  const handleCopy = () => {
+  const [copiedContract, setCopiedContract] = useState(false);
+  const [copiedAccount, setCopiedAccount] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleCopyContract = () => {
     navigator.clipboard.writeText(CONTRACT_ADDRESS);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedContract(true);
+    setTimeout(() => setCopiedContract(false), 2000);
+  };
+
+  const handleCopyAccount = () => {
+    if (!account) return;
+    navigator.clipboard.writeText(account);
+    setCopiedAccount(true);
+    setTimeout(() => setCopiedAccount(false), 2000);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshBlockchainData();
+    setTimeout(() => setIsRefreshing(false), 600);
   };
 
   const etherscanUrl = `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-      {/* PAGE HEADER */}
+      {/* 1. SETTINGS HEADER */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="glass-panel p-6 border border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+          <div className="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-lg shadow-purple-500/10">
             <Settings className="w-6 h-6" />
           </div>
           <div>
             <h1 className="font-heading font-black text-2xl sm:text-3xl text-white">
-              KIWIIEE <span className="text-gradient">MULTISIG</span>
+              Wallet Settings & Configuration
             </h1>
             <p className="text-xs text-slate-400">
-              Educational 2-of-3 Smart Contract Wallet
+              Smart contract parameters, keyholder permissions, and Ethereum Sepolia connection
             </p>
           </div>
         </div>
 
-        <a
-          href={etherscanUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="btn-primary text-xs !py-2.5 !px-4 flex items-center gap-2"
-        >
-          <span>View Contract on Etherscan</span>
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing || isLoadingData}
+            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-slate-700 transition-colors text-xs flex items-center gap-2 font-semibold"
+            title="Refresh Blockchain Data"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing || isLoadingData ? 'animate-spin text-cyan-400' : ''}`} />
+            <span>Refresh Blockchain Data</span>
+          </button>
+        </div>
       </motion.div>
 
-      {/* CONTRACT SPECIFICATIONS & NETWORK OVERVIEW */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: Contract Parameters */}
+      {/* 2. CORE WALLET ATTRIBUTES GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Wallet Type Card */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="lg:col-span-7 glass-panel p-6 sm:p-8 rounded-3xl border border-purple-500/30 space-y-6"
+          className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-3 relative overflow-hidden"
         >
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <div className="flex items-center gap-2">
-              <FileCode className="w-5 h-5 text-cyan-400" />
-              <h2 className="font-heading font-bold text-lg text-white">
-                Contract Specifications
-              </h2>
+          <div className="flex items-center justify-between">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+              <Wallet className="w-5 h-5" />
             </div>
-            <span className="badge-emerald text-xs">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Active on Sepolia
+            <span className="badge-purple text-[10px] font-mono">ERC-4337 Ready</span>
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block font-sans">
+              Wallet Type
             </span>
-          </div>
-
-          {/* Contract Address Container */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider">
-              <span>Contract Address</span>
-              <span className="text-cyan-400 font-mono">{shortenAddress(CONTRACT_ADDRESS)}</span>
+            <div className="text-xl font-heading font-black text-white mt-0.5">
+              Smart Contract Wallet
             </div>
-            <div className="flex items-center justify-between gap-2 p-3.5 bg-[#070914] rounded-2xl border border-slate-800 font-mono text-xs text-slate-200">
-              <span className="break-all select-all font-semibold text-cyan-300">{CONTRACT_ADDRESS}</span>
-              <button
-                onClick={handleCopy}
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition-colors shrink-0"
-                title="Copy Contract Address"
-              >
-                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Key Parameters Matrix */}
-          <div className="grid grid-cols-2 gap-3.5 font-mono text-xs">
-            <div className="p-4 rounded-2xl bg-[#080b18] border border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-sans">
-                Network
-              </span>
-              <span className="text-sm font-bold text-white block">
-                Sepolia Testnet
-              </span>
-              <span className="text-[10px] text-emerald-400 font-sans">Ethereum L1 Testnet</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#080b18] border border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-sans">
-                Chain ID
-              </span>
-              <span className="text-sm font-bold text-cyan-300 block">
-                11155111
-              </span>
-              <span className="text-[10px] text-slate-500">Hex: 0xaa36a7</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#080b18] border border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-sans">
-                Quorum Threshold
-              </span>
-              <span className="text-sm font-bold text-emerald-400 block">
-                2 of 3 (66.6%)
-              </span>
-              <span className="text-[10px] text-slate-400 font-sans">Requires 2 signatures</span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#080b18] border border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-sans">
-                Signer Accounts
-              </span>
-              <span className="text-sm font-bold text-purple-300 block">
-                3 Registered Keys
-              </span>
-              <span className="text-[10px] text-slate-400 font-sans">Immutable Signers</span>
-            </div>
-          </div>
-
-          {/* Etherscan Direct Link Button */}
-          <div className="pt-2">
-            <a
-              href={etherscanUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-secondary w-full text-xs !py-3 flex items-center justify-center gap-2"
-            >
-              <span>View Contract on Etherscan</span>
-              <ExternalLink className="w-4 h-4 text-cyan-400" />
-            </a>
+            <p className="text-xs text-slate-400 mt-1">
+              Programmable on-chain vault secured by smart contract consensus logic.
+            </p>
           </div>
         </motion.div>
 
-        {/* Right: Academic Project Info & Role Badge */}
+        {/* Network Card */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.15 }}
-          className="lg:col-span-5 glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 flex flex-col justify-between space-y-6"
+          transition={{ delay: 0.05 }}
+          className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-3 relative overflow-hidden"
         >
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                <GraduationCap className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-heading font-bold text-lg text-white">
-                  Academic Project
-                </h3>
-                <span className="text-[11px] text-slate-400 font-mono">
-                  College Blockchain Demonstration
-                </span>
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+              <Globe2 className="w-5 h-5" />
             </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed">
-              KIWIIEE MULTISIG is an educational decentralized application built to demonstrate multi-signature consensus, non-custodial smart contract custody, and threshold authorization protocols.
-            </p>
-
-            {/* Current Session Connection Status */}
-            <div className="p-4 rounded-2xl bg-[#080b18] border border-slate-800 space-y-2 text-xs">
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">
-                Your Current Session
-              </span>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Connection:</span>
-                <span className={`font-mono font-bold ${isConnected ? 'text-emerald-400' : 'text-slate-500'}`}>
-                  {isConnected ? 'MetaMask Connected' : 'Disconnected'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Network:</span>
-                <span className={`font-mono font-bold ${isSepolia ? 'text-emerald-400' : 'text-amber-400'}`}>
-                  {isSepolia ? 'Sepolia (Valid)' : 'Non-Sepolia'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Role:</span>
-                <span className={`font-mono font-bold ${isOwner ? 'text-purple-300' : 'text-slate-400'}`}>
-                  {ownerLabel}
-                </span>
-              </div>
-            </div>
+            <span className="badge-cyan text-[10px] font-mono">Chain ID: 11155111</span>
           </div>
 
-          <div className="text-[11px] text-slate-500 font-mono">
-            Powered by React, Vite, ethers.js & Framer Motion
+          <div>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block font-sans">
+              Network
+            </span>
+            <div className="text-xl font-heading font-black text-white mt-0.5">
+              Ethereum Sepolia
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Ethereum Layer-1 Proof-of-Stake public testnet with instant settlement.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Required Approvals Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-3 relative overflow-hidden"
+        >
+          <div className="flex items-center justify-between">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <span className="badge-emerald text-[10px] font-mono">66.7% Quorum</span>
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block font-sans">
+              Required Approvals
+            </span>
+            <div className="text-xl font-heading font-black text-emerald-400 mt-0.5">
+              2 of 3 Owners
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Dual-authorization security preventing unauthorized transfers and single-point failure.
+            </p>
           </div>
         </motion.div>
       </div>
 
-      {/* EDUCATIONAL EXPLANATIONS SECTION */}
+      {/* 3. CONTRACT & CONNECTED ACCOUNT ADDRESS MANAGEMENT */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Contract Address Panel */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="glass-panel p-6 sm:p-7 rounded-3xl border border-purple-500/30 space-y-5"
+        >
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <FileCode className="w-5 h-5 text-purple-400" />
+              <h3 className="font-heading font-bold text-base text-white">
+                Smart Contract Address
+              </h3>
+            </div>
+            <span className="badge-purple text-[10px] font-mono">Sepolia Vault</span>
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block font-sans">
+              Deployed Contract
+            </span>
+            <div className="p-3 bg-[#070914] rounded-2xl border border-slate-800 font-mono text-xs text-cyan-300 break-all select-all font-semibold">
+              {CONTRACT_ADDRESS}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            <button
+              onClick={handleCopyContract}
+              className="btn-primary text-xs !py-2.5 !px-4 flex items-center gap-1.5 flex-1 justify-center"
+            >
+              {copiedContract ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-950" />
+                  <span className="font-bold">Contract Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copy Contract Address</span>
+                </>
+              )}
+            </button>
+
+            <a
+              href={etherscanUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-secondary text-xs !py-2.5 !px-4 flex items-center gap-1.5 flex-1 justify-center"
+            >
+              <span>View Contract on Etherscan</span>
+              <ExternalLink className="w-3.5 h-3.5 text-cyan-400" />
+            </a>
+          </div>
+        </motion.div>
+
+        {/* Connected Account & Owner Status Panel */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-panel p-6 sm:p-7 rounded-3xl border border-slate-800 space-y-5"
+        >
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-cyan-400" />
+              <h3 className="font-heading font-bold text-base text-white">
+                Connected Account & Permissions
+              </h3>
+            </div>
+            <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${
+              isOwner 
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                : 'bg-slate-800 text-slate-400 border-slate-700'
+            }`}>
+              {isOwner ? 'Owner Signer' : 'Observer'}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              <span>Connected Address</span>
+              <span className={`font-mono ${isOwner ? 'text-lime-400 font-bold' : 'text-slate-400'}`}>
+                {isOwner ? `Owner 0${ownerNumber}` : 'Not an owner'}
+              </span>
+            </div>
+            <div className="p-3 bg-[#070914] rounded-2xl border border-slate-800 font-mono text-xs text-slate-200 break-all select-all font-semibold">
+              {account || 'No wallet connected'}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            <button
+              onClick={handleCopyAccount}
+              disabled={!isConnected}
+              className={`btn-secondary text-xs !py-2.5 !px-4 flex items-center gap-1.5 flex-1 justify-center ${
+                !isConnected ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {copiedAccount ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400 font-bold">Account Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copy Connected Address</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing || isLoadingData}
+              className="btn-primary text-xs !py-2.5 !px-4 flex items-center gap-1.5 flex-1 justify-center"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isLoadingData ? 'animate-spin' : ''}`} />
+              <span>Refresh Blockchain Data</span>
+            </button>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* 4. SOLIDITY CONTRACT ABI & SECURITY MATRIX */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="space-y-6"
+        transition={{ delay: 0.25 }}
+        className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6"
       >
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-cyan-400 font-mono">
-            Educational Architecture
+        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+              <Cpu className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-heading font-bold text-lg text-white">
+                Smart Contract Interface (ABI)
+              </h3>
+              <p className="text-xs text-slate-400">
+                Core Solidity methods and access control rules running on Sepolia
+              </p>
+            </div>
+          </div>
+
+          <span className="badge-purple text-xs font-mono">
+            Solidity ^0.8.20
           </span>
-          <h2 className="font-heading font-black text-2xl sm:text-3xl text-white">
-            How Multisig Blockchain Security Works
-          </h2>
-          <p className="text-xs text-slate-400">
-            A comprehensive breakdown of key concepts for faculty presentation and blockchain learners
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Pillar 1: Multisig Wallets */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 hover:border-purple-500/40 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-              <Lock className="w-5 h-5" />
-            </div>
-            <h4 className="font-heading font-bold text-base text-white">
-              Multisig Wallets
-            </h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Standard wallets rely on a single private key (Single Point of Failure). Multi-signature wallets store funds inside a smart contract, requiring multiple independent signatures to authorize transfers.
-            </p>
-          </div>
-
-          {/* Pillar 2: 2-of-3 Approvals */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 hover:border-cyan-500/40 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-              <KeyRound className="w-5 h-5" />
-            </div>
-            <h4 className="font-heading font-bold text-base text-white">
-              2-of-3 Approvals
-            </h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              In a 2-of-3 model, any 2 out of the 3 registered owners must independently call <code className="text-cyan-300 font-mono text-[11px]">approveTransaction()</code> before the payout can be executed on-chain.
-            </p>
-          </div>
-
-          {/* Pillar 3: Sepolia Testnet */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 hover:border-emerald-500/40 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-              <Globe2 className="w-5 h-5" />
-            </div>
-            <h4 className="font-heading font-bold text-base text-white">
-              Sepolia Testnet
-            </h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Ethereum Sepolia is an official proof-of-stake test network mimicking Ethereum mainnet. It allows students and developers to experiment with real smart contract execution without real financial risk.
-            </p>
-          </div>
-
-          {/* Pillar 4: Educational Purpose */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 hover:border-purple-500/40 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-              <GraduationCap className="w-5 h-5" />
-            </div>
-            <h4 className="font-heading font-bold text-base text-white">
-              Educational Purpose
-            </h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Engineered specifically as a university capstone demonstration. Highlights state synchronization between MetaMask, ethers.js, smart contract events, and modern Web3 UI design.
-            </p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* CORE SMART CONTRACT ABI METHODS TABLE */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-4"
-      >
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-          <FileCode className="w-5 h-5 text-purple-400" />
-          <h3 className="font-heading font-bold text-base text-white">
-            Solidity Smart Contract Interface
-          </h3>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left font-mono text-xs">
+          <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] font-sans">
-                <th className="py-2.5 px-3">Function Signature</th>
-                <th className="py-2.5 px-3">Type</th>
-                <th className="py-2.5 px-3">Access</th>
-                <th className="py-2.5 px-3">Purpose</th>
+              <tr className="border-b border-slate-800 text-slate-400 font-sans uppercase text-[10px] tracking-wider">
+                <th className="py-3 px-4">Function</th>
+                <th className="py-3 px-4">Type</th>
+                <th className="py-3 px-4">Access Modifier</th>
+                <th className="py-3 px-4">Description</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
-              <tr>
-                <td className="py-2.5 px-3 text-purple-300">submitTransaction(address _to, uint256 _value)</td>
-                <td className="py-2.5 px-3 text-amber-400">Write (External)</td>
-                <td className="py-2.5 px-3 text-emerald-400">Owner Only</td>
-                <td className="py-2.5 px-3 font-sans text-slate-400 text-[11px]">Proposes a new outgoing payment</td>
+            <tbody className="divide-y divide-slate-800/60">
+              <tr className="hover:bg-white/5 transition-colors">
+                <td className="py-3.5 px-4 font-bold text-purple-300">submitTransaction(address _to, uint256 _value)</td>
+                <td className="py-3.5 px-4"><span className="badge-purple text-[10px]">Write (Non-Payable)</span></td>
+                <td className="py-3.5 px-4"><span className="text-amber-400 font-sans font-semibold">onlyOwner</span></td>
+                <td className="py-3.5 px-4 text-slate-300 font-sans">Creates an on-chain transfer proposal. Does NOT send msg.value.</td>
               </tr>
-              <tr>
-                <td className="py-2.5 px-3 text-cyan-300">approveTransaction(uint256 _txId)</td>
-                <td className="py-2.5 px-3 text-amber-400">Write (External)</td>
-                <td className="py-2.5 px-3 text-emerald-400">Owner Only</td>
-                <td className="py-2.5 px-3 font-sans text-slate-400 text-[11px]">Submits signer cryptographic approval</td>
+              <tr className="hover:bg-white/5 transition-colors">
+                <td className="py-3.5 px-4 font-bold text-cyan-300">approveTransaction(uint256 _txId)</td>
+                <td className="py-3.5 px-4"><span className="badge-cyan text-[10px]">Write</span></td>
+                <td className="py-3.5 px-4"><span className="text-amber-400 font-sans font-semibold">onlyOwner</span></td>
+                <td className="py-3.5 px-4 text-slate-300 font-sans">Cryptographically records owner approval for proposal _txId.</td>
               </tr>
-              <tr>
-                <td className="py-2.5 px-3 text-emerald-300">executeTransaction(uint256 _txId)</td>
-                <td className="py-2.5 px-3 text-amber-400">Write (External)</td>
-                <td className="py-2.5 px-3 text-emerald-400">Owner Only (≥2 Approvals)</td>
-                <td className="py-2.5 px-3 font-sans text-slate-400 text-[11px]">Executes payout transfer on Sepolia</td>
+              <tr className="hover:bg-white/5 transition-colors">
+                <td className="py-3.5 px-4 font-bold text-emerald-300">executeTransaction(uint256 _txId)</td>
+                <td className="py-3.5 px-4"><span className="badge-emerald text-[10px]">Write (Settlement)</span></td>
+                <td className="py-3.5 px-4"><span className="text-amber-400 font-sans font-semibold">onlyOwner</span></td>
+                <td className="py-3.5 px-4 text-slate-300 font-sans">Executes payout once quorum of 2/3 approvals is confirmed.</td>
               </tr>
-              <tr>
-                <td className="py-2.5 px-3 text-slate-300">getBalance()</td>
-                <td className="py-2.5 px-3 text-blue-400">View (Read)</td>
-                <td className="py-2.5 px-3 text-slate-400">Public</td>
-                <td className="py-2.5 px-3 font-sans text-slate-400 text-[11px]">Returns vault ETH balance</td>
+              <tr className="hover:bg-white/5 transition-colors">
+                <td className="py-3.5 px-4 font-bold text-slate-200">getBalance()</td>
+                <td className="py-3.5 px-4"><span className="badge-purple text-[10px]">View</span></td>
+                <td className="py-3.5 px-4 text-slate-400 font-sans">Public</td>
+                <td className="py-3.5 px-4 text-slate-300 font-sans">Returns current ETH reserves deposited in the vault contract.</td>
               </tr>
-              <tr>
-                <td className="py-2.5 px-3 text-slate-300">getTransactionCount()</td>
-                <td className="py-2.5 px-3 text-blue-400">View (Read)</td>
-                <td className="py-2.5 px-3 text-slate-400">Public</td>
-                <td className="py-2.5 px-3 font-sans text-slate-400 text-[11px]">Returns total proposed transactions</td>
+              <tr className="hover:bg-white/5 transition-colors">
+                <td className="py-3.5 px-4 font-bold text-slate-200">getTransactionCount()</td>
+                <td className="py-3.5 px-4"><span className="badge-purple text-[10px]">View</span></td>
+                <td className="py-3.5 px-4 text-slate-400 font-sans">Public</td>
+                <td className="py-3.5 px-4 text-slate-300 font-sans">Returns total historical proposal count created on-chain.</td>
               </tr>
             </tbody>
           </table>
@@ -354,3 +379,5 @@ export const SettingsPage = () => {
     </div>
   );
 };
+
+export default SettingsPage;
